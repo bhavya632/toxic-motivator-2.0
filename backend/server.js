@@ -56,7 +56,34 @@ app.get('/api/session/:id', (req, res) => {
   });
 });
 
-// POST /api/analyze — instantly rate the excuse weakness before motivating
+async function analyzeExcuse(excuse) {
+  const result = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    max_tokens: 200,
+    temperature: 0.7,
+    response_format: { type: 'json_object' },
+    messages: [
+      {
+        role: 'system',
+        content: `You are a brutal excuse analyst. Every excuse ever made by a human is pathetic, unbelievable, and unoriginal. Given an excuse, return ONLY valid JSON with exactly these fields:
+{
+  "shame": <integer 75-100, always high — every excuse deserves maximum shame>,
+  "pathetic": <integer 7-10, always high — all excuses are pathetic by definition>,
+  "laziness": <integer 7-10, always high — making excuses IS laziness>,
+  "believability": <integer 1-4, always low — no excuse is believable>,
+  "creativity": <integer 1-3, always low — excuses are never creative, they're all the same tired nonsense>,
+  "verdict": "<one savage sentence (max 12 words) judging this excuse>",
+  "category": "<single word: gym | study | work | tired | mood | weather | procrastination | social | other>"
+}
+No explanation. No markdown. Only the JSON object.`,
+      },
+      { role: 'user', content: excuse },
+    ],
+  });
+  return JSON.parse(result.choices[0].message.content);
+}
+
+// POST /api/analyze — live typing preview (fast, pattern-based)
 app.post('/api/analyze', (req, res) => {
   const { excuse } = req.body;
   if (!excuse) return res.status(400).json({ error: 'No excuse provided' });
@@ -93,7 +120,6 @@ app.post('/api/motivate', async (req, res) => {
   const newAchievements = checkAchievements(session);
   session.allAchievements.push(...newAchievements);
 
-  const weaknessRating = getWeaknessRating(excuse);
   const systemPrompt = persona.buildPrompt(session);
 
   // SSE headers
@@ -102,7 +128,31 @@ app.post('/api/motivate', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
 
-  // Send session metadata first
+  // Run AI excuse analysis and motivation stream creation in parallel
+  let excuseAnalysis = null;
+  let stream;
+  try {
+    [excuseAnalysis, stream] = await Promise.all([
+      analyzeExcuse(excuse),
+      groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 300,
+        temperature: 1.4,
+        top_p: 0.9,
+        stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: excuse },
+        ],
+      }),
+    ]);
+  } catch (err) {
+    console.error('Groq error:', err);
+    res.write(`data: ${JSON.stringify({ type: 'error', content: err.message })}\n\n`);
+    return res.end();
+  }
+
+  // Send metadata + AI excuse analysis before streaming the roast
   res.write(
     `data: ${JSON.stringify({
       type: 'meta',
@@ -110,34 +160,23 @@ app.post('/api/motivate', async (req, res) => {
       toxicityLevel: session.toxicityLevel,
       shameScore: session.shameScore,
       excuseCount: session.excuseCount,
-      weaknessRating,
+      excuseAnalysis,
       newAchievements,
       persona: { name: persona.name, emoji: persona.emoji, color: persona.color },
     })}\n\n`
   );
 
   try {
-    const stream = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 300,
-      stream: true,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: excuse },
-      ],
-    });
-
     for await (const chunk of stream) {
       const text = chunk.choices[0]?.delta?.content || '';
       if (text) {
         res.write(`data: ${JSON.stringify({ type: 'text', content: text })}\n\n`);
       }
     }
-
     res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     res.end();
   } catch (err) {
-    console.error('Groq error:', err);
+    console.error('Stream error:', err);
     res.write(`data: ${JSON.stringify({ type: 'error', content: err.message })}\n\n`);
     res.end();
   }
@@ -159,9 +198,29 @@ app.get('/api/leaderboard', (req, res) => {
   res.json(entries);
 });
 
-app.listen(PORT, () => {
-  console.log(`\n💀 TOXIC MOTIVATOR 2.0 BACKEND RUNNING`);
+const server = app.listen(PORT, () => {
+  console.log(`\n💀 TOXIC MOTIVATOR BACKEND RUNNING`);
   console.log(`   Port: ${PORT}`);
   console.log(`   Shame engines: ONLINE`);
   console.log(`   Mercy: DISABLED\n`);
 });
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n[ERROR] Port ${PORT} is already in use.`);
+    console.error(`  Fix: lsof -ti :${PORT} | xargs kill -9\n`);
+    process.exit(1);
+  }
+  throw err;
+});
+
+// Graceful shutdown so node --watch restarts don't leave the port held open.
+// closeAllConnections() drops all sockets immediately; the setTimeout is a
+// hard deadline in case server.close() hangs on a stubborn SSE connection.
+function shutdown() {
+  server.closeAllConnections?.();
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 300).unref();
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

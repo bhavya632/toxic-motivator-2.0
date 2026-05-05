@@ -1,16 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ModeSelector, { MODES } from './components/ModeSelector.jsx';
-import RageMeter from './components/RageMeter.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
-import ExcuseHistory from './components/ExcuseHistory.jsx';
-
-const WEAKNESS_COLORS = {
-  3: '#44ff88',
-  4: '#ffcc00',
-  6: '#ff8800',
-  8: '#ff4400',
-  10: '#ff0022',
-};
+import ExcuseAnalysis from './components/ExcuseAnalysis.jsx';
 
 function parseSSEChunk(raw) {
   return raw
@@ -36,7 +27,7 @@ export default function App() {
 
   const [weaknessBadge, setWeaknessBadge] = useState(null);
   const [personaMeta, setPersonaMeta] = useState(null);
-  const [currentWeakness, setCurrentWeakness] = useState(null);
+  const [excuseAnalysis, setExcuseAnalysis] = useState(null);
 
   const [achievements, setAchievements] = useState([]);
   const [toastQueue, setToastQueue] = useState([]);
@@ -124,7 +115,7 @@ export default function App() {
             setShameScore(event.shameScore);
             setExcuseCount(event.excuseCount);
             setPersonaMeta(event.persona);
-            setCurrentWeakness(event.weaknessRating);
+            setExcuseAnalysis(event.excuseAnalysis);
             setLoading(false);
 
             if (event.newAchievements?.length > 0) {
@@ -180,8 +171,8 @@ export default function App() {
       {/* Header */}
       <header className="header">
         <div className="title-wrap">
-          <h1 className="title" data-text="TOXIC MOTIVATOR 2.0">
-            TOXIC MOTIVATOR 2.0
+          <h1 className="title" data-text="TOXIC MOTIVATOR">
+            TOXIC MOTIVATOR
           </h1>
         </div>
         <p className="subtitle">AI-POWERED PERSONALIZED SHAME ENGINE · NO MERCY EDITION</p>
@@ -190,33 +181,11 @@ export default function App() {
       {/* Mode Selector */}
       <ModeSelector selectedMode={mode} onSelect={setMode} disabled={streaming} />
 
-      {/* Stats */}
-      <div className="stats-panel">
-        <div className="stat-card">
-          <div className="stat-label">Shame Score</div>
-          <div className="stat-value shame">{shameScore}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Toxicity</div>
-          <div className="stat-value toxicity">{toxicityLevel}/10</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Excuses</div>
-          <div className="stat-value count">{excuseCount}</div>
-        </div>
-      </div>
-
-      {/* Rage Meter */}
-      <RageMeter toxicityLevel={toxicityLevel} />
-
       {/* Input */}
       <section className="input-section">
         <div className="weakness-indicator">
           {weaknessBadge && (
-            <span
-              className="weakness-badge"
-              style={{ '--badge-color': WEAKNESS_COLORS[weaknessBadge.rating] || '#ff0022' }}
-            >
+            <span className="weakness-badge" style={{ '--badge-color': '#ff8800' }}>
               {weaknessBadge.label}
             </span>
           )}
@@ -251,14 +220,9 @@ export default function App() {
             >
               <span className="persona-emoji">{personaMeta?.emoji || currentPersona?.emoji}</span>
               <span className="persona-name">{personaMeta?.name || currentPersona?.name}</span>
-              {currentWeakness && (
-                <span
-                  className="weakness-tag"
-                  style={{
-                    color: WEAKNESS_COLORS[currentWeakness.rating] || '#ff0022',
-                  }}
-                >
-                  {currentWeakness.label}
+              {excuseAnalysis?.category && (
+                <span className="weakness-tag" style={{ color: 'var(--orange)' }}>
+                  {excuseAnalysis.category.toUpperCase()}
                 </span>
               )}
             </div>
@@ -278,29 +242,12 @@ export default function App() {
         )}
       </section>
 
-      {/* Achievements earned */}
-      {achievements.length > 0 && (
-        <div className="achievement-list">
-          <div className="achievement-list-header">SHAME ACHIEVEMENTS UNLOCKED</div>
-          <div className="achievements-grid">
-            {achievements.map((a, i) => (
-              <div key={a.id + i} className="achievement-chip">
-                <span className="achievement-chip-icon">{a.icon}</span>
-                <div>
-                  <div className="achievement-chip-name">{a.name}</div>
-                  <div className="achievement-chip-text">{a.description}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* AI excuse analysis */}
+      <ExcuseAnalysis analysis={excuseAnalysis} />
 
-      {/* Excuse history */}
-      <ExcuseHistory excuses={excuseHistory} />
 
       <footer className="footer">
-        TOXIC MOTIVATOR 2.0 · SHAME SCORE NEVER RESETS · MERCY: DISABLED
+        TOXIC MOTIVATOR · SHAME SCORE NEVER RESETS · MERCY: DISABLED
       </footer>
     </div>
   );

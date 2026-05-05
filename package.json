@@ -1,5 +1,5 @@
 {
-  "name": "toxic-motivator-2",
+  "name": "toxic-motivator",
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"red,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",

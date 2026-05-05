@@ -15,7 +15,6 @@ export default function ExcuseHistory({ excuses }) {
             <div key={i} className="history-item">
               <span className="history-num">#{i + 1}</span>
               <span className="history-text">{ex.text}</span>
-              <span className="history-shame">+{ex.shame} shame</span>
             </div>
           ))}
         </div>

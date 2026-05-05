@@ -1,16 +1,15 @@
-# TOXIC MOTIVATOR 2.0
+# TOXIC MOTIVATOR
 
-> An AI-powered chaos engine that learns to motivate you by being increasingly, personally toxic.
+> An AI-powered chaos engine that destroys your excuses with personalized, increasingly unhinged attacks.
 
-![Toxicity Level](https://img.shields.io/badge/toxicity-MAXIMUM-red)
 ![Mercy](https://img.shields.io/badge/mercy-DISABLED-black)
-![Shame Score](https://img.shields.io/badge/shame_score-∞-darkred)
+![Shame](https://img.shields.io/badge/shame-MAXIMUM-red)
 
 ---
 
 ## What is this
 
-You type an excuse. An AI destroys it. The more excuses you make, the higher your **Shame Score** climbs, the higher the **Toxicity Level** rises, and the more unhinged the AI becomes — referencing your entire excuse history to craft personalized, escalating attacks.
+You type an excuse. Pick a persona. An AI destroys it — referencing your past excuses to make each attack more personal. Every submission also gets an AI-generated breakdown rating how pathetic, lazy, unbelievable, and uncreative your excuse actually is.
 
 Built for hackathon. Zero mercy. All chaos.
 
@@ -18,26 +17,20 @@ Built for hackathon. Zero mercy. All chaos.
 
 ## Features
 
-- **5 Toxic Personas** — each with distinct personalities and escalating prompt engineering
+- **5 Toxic Personas** — each with a distinct personality and randomized attack angles per request
   - 🏋️ CHAD THUNDERCOCK — Aggressive gym bro who hasn't missed a workout in 8 years
-  - 🪖 SGT. PAINSWORTH — 30-year Marine veteran who has seen real suffering
-  - 😤 THE DISAPPOINTED ONE — Passive-aggressive parent who sacrificed everything
+  - 🪖 SGT. PAINSWORTH — 30-year Marine veteran with zero tolerance for civilian weakness
+  - 😤 THE DISAPPOINTED ONE — Passive-aggressive parent who sacrificed everything for this
   - 💼 BRENDAN "GRINDSET" MAXWELL — Toxic hustle culture guru with 3 Lamborghinis
   - 🤖 NEMESIS-7 — Sentient evil AI that calculates your probability of success at zero
 
-- **Shame Engine** — 12 excuse categories (tired, busy, tomorrow, weather, gym, study, mood, distraction...) each carrying different shame point multipliers
+- **AI Excuse Analysis** — Every excuse gets scored by Groq across 5 dimensions: Shame (0–100), Pathetic (1–10), Laziness (1–10), Believability (1–10), Creativity (1–10), plus a one-line AI verdict
 
-- **Toxicity Level System** — 10 levels that escalate based on cumulative shame score and excuse count. At level 10: CHAOS MODE activates with screen shake, glitch effects, and full unhinged AI responses
+- **Randomized Attack Angles** — Each persona draws from a pool of distinct attack vectors so responses never repeat the same opener
 
-- **Live Excuse Analysis** — Rates your excuse weakness in real-time as you type, before you even submit
+- **Streaming Responses** — Token-by-token via Server-Sent Events, so every word lands in real time
 
-- **12 Unlockable Shame Achievements** — Professional Procrastinator, Gym Card Collector, Tomorrow Never Comes, Century of Shame, CHAOS MODE UNLOCKED, and more
-
-- **Streaming AI Responses** — Token-by-token via Server-Sent Events so you feel every word land
-
-- **Session Memory** — The AI reads your full excuse history and references past failures in later responses
-
-- **Glitch UI** — CSS glitch title animation, scanline overlay, rage meter with 10 colored segments, achievement toast notifications
+- **Glitch UI** — CSS glitch title animation, scanline overlay, chaos mode at high toxicity
 
 ---
 
@@ -64,10 +57,9 @@ Built for hackathon. Zero mercy. All chaos.
 ### Setup
 
 ```bash
-git clone https://github.com/bhavya632/toxic-motivator-2.0
-cd toxic-motivator-2.0
+git clone https://github.com/bhavya632/toxic-motivator
+cd toxic-motivator
 
-# Install all dependencies
 cd backend && npm install && cd ../frontend && npm install && cd .. && npm install
 ```
 
@@ -84,7 +76,6 @@ PORT=3001
 npm run dev
 ```
 
-This starts both servers concurrently:
 - Backend: `http://localhost:3001`
 - Frontend: `http://localhost:5173`
 
@@ -93,23 +84,22 @@ This starts both servers concurrently:
 ## Project Structure
 
 ```
-toxic-motivator-2.0/
+toxic-motivator/
 ├── .env                          # API keys (not committed)
 ├── package.json                  # Root — runs both servers via concurrently
 ├── backend/
 │   ├── server.js                 # Express server, SSE streaming, session management
-│   ├── personas.js               # 5 toxic AI personas with dynamic prompt builders
-│   ├── gameEngine.js             # Shame scoring, toxicity calculation, achievements
+│   ├── personas.js               # 5 personas with randomized attack angle pools
+│   ├── gameEngine.js             # Session state, excuse categorization
 │   └── package.json
 └── frontend/
     ├── src/
-    │   ├── App.jsx               # Main app, SSE consumer, full session state
-    │   ├── App.css               # Glitch animations, chaos mode, rage meter
+    │   ├── App.jsx               # Main app, SSE consumer, session state
+    │   ├── App.css               # Glitch animations, chaos mode
     │   └── components/
-    │       ├── RageMeter.jsx     # 10-segment toxicity visualizer
-    │       ├── ModeSelector.jsx  # Persona picker with color-coded glow
-    │       ├── AchievementToast.jsx  # Pop-in achievement notifications
-    │       └── ExcuseHistory.jsx    # Collapsible shame log
+    │       ├── ModeSelector.jsx      # Persona picker with color-coded glow
+    │       ├── ExcuseAnalysis.jsx    # AI-scored metric bars per excuse
+    │       └── AchievementToast.jsx  # Pop-in achievement notifications
     ├── vite.config.js            # Proxies /api to backend
     └── index.html
 ```
@@ -120,33 +110,24 @@ toxic-motivator-2.0/
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/session` | Create a new shame session |
-| `GET` | `/api/session/:id` | Get session stats (score, level, achievements) |
-| `POST` | `/api/analyze` | Rate excuse weakness instantly (no AI call) |
-| `POST` | `/api/motivate` | Stream toxic motivation via SSE |
-| `GET` | `/api/leaderboard` | Top shame scores across active sessions |
+| `POST` | `/api/session` | Create a new session |
+| `GET` | `/api/session/:id` | Get session state |
+| `POST` | `/api/analyze` | Pattern-based excuse preview (live typing) |
+| `POST` | `/api/motivate` | AI excuse analysis + streaming roast via SSE |
+| `GET` | `/api/leaderboard` | Sessions ranked by shame score |
 
 ---
 
-## How the Shame Engine Works
+## How the Analysis Works
 
-Each excuse is pattern-matched against 12 categories:
+On every submission, two Groq calls run in parallel:
 
-| Category | Bonus Shame |
-|---|---|
-| Procrastination ("tomorrow", "later") | +25 |
-| Entertainment ("Netflix", "phone") | +30 |
-| Mood ("don't feel like it") | +20 |
-| Time ("too busy") | +15 |
-| Gym | +14 |
-| Weather | +12 |
-| Study | +11 |
-| Sore | +9 |
-| Tired | +8 |
+1. **Motivation stream** — the selected persona roasts the excuse token-by-token
+2. **Excuse analysis** — a separate JSON-mode call scores the excuse across 5 dimensions
 
-Toxicity level = `floor(shameScore / 15) + floor(excuseCount / 2)`, capped at 10.
+The analysis prompt is rigged: creativity and believability are always scored low (1–3 and 1–4), while shame, pathetic, and laziness are always scored high (75–100 and 7–10). Because no excuse deserves mercy.
 
-The AI prompt is rebuilt every request with current toxicity level, shame score, and recent excuse history — so responses become more personal and savage over time.
+The persona prompt is rebuilt each request with a randomly selected attack angle, so responses stay varied.
 
 ---
 
