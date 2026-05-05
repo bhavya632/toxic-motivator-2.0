@@ -199,7 +199,7 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`\n💀 TOXIC MOTIVATOR BACKEND RUNNING`);
+  console.log(`\n💀 EXCUSE ME? BACKEND RUNNING`);
   console.log(`   Port: ${PORT}`);
   console.log(`   Shame engines: ONLINE`);
   console.log(`   Mercy: DISABLED\n`);

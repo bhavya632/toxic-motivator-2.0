@@ -171,8 +171,8 @@ export default function App() {
       {/* Header */}
       <header className="header">
         <div className="title-wrap">
-          <h1 className="title" data-text="TOXIC MOTIVATOR">
-            TOXIC MOTIVATOR
+          <h1 className="title" data-text="EXCUSE ME?">
+            EXCUSE ME?
           </h1>
         </div>
         <p className="subtitle">AI-POWERED PERSONALIZED SHAME ENGINE · NO MERCY EDITION</p>
@@ -247,7 +247,7 @@ export default function App() {
 
 
       <footer className="footer">
-        TOXIC MOTIVATOR · SHAME SCORE NEVER RESETS · MERCY: DISABLED
+        EXCUSE ME? · SHAME SCORE NEVER RESETS · MERCY: DISABLED
       </footer>
     </div>
   );

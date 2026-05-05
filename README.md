@@ -1,4 +1,4 @@
-# TOXIC MOTIVATOR
+# EXCUSE ME?
 
 > An AI-powered chaos engine that destroys your excuses with personalized, increasingly unhinged attacks.
 
@@ -9,7 +9,7 @@
 
 ## What is this
 
-You type an excuse. Pick a persona. An AI destroys it — referencing your past excuses to make each attack more personal. Every submission also gets an AI-generated breakdown rating how pathetic, lazy, unbelievable, and uncreative your excuse actually is.
+You type an excuse. Pick a persona. An AI destroys it. Every submission also gets an AI-generated breakdown rating how pathetic, lazy, unbelievable, and uncreative your excuse actually is.
 
 Built for hackathon. Zero mercy. All chaos.
 
@@ -57,8 +57,8 @@ Built for hackathon. Zero mercy. All chaos.
 ### Setup
 
 ```bash
-git clone https://github.com/bhavya632/toxic-motivator
-cd toxic-motivator
+git clone https://github.com/bhavya632/excuse-me
+cd excuse-me
 
 cd backend && npm install && cd ../frontend && npm install && cd .. && npm install
 ```
@@ -84,7 +84,7 @@ npm run dev
 ## Project Structure
 
 ```
-toxic-motivator/
+excuse-me/
 ├── .env                          # API keys (not committed)
 ├── package.json                  # Root — runs both servers via concurrently
 ├── backend/
